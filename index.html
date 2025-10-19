@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SweetChoice — Seanne & Harsh (Live)</title>
+  <style>
+    :root{--bg:#fff7fb;--card:#ffffff;--accent:#ff6b81;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#111;background:linear-gradient(180deg,var(--bg),#fff);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+    .wrap{width:100%;max-width:1100px;background:var(--card);border-radius:16px;box-shadow:0 18px 50px rgba(17,24,39,.08);padding:22px;position:relative}
+    header{display:flex;justify-content:space-between;align-items:center}
+    h1{margin:0;font-size:20px;color:var(--accent)}
+    .sub{color:var(--muted);font-size:13px}
+    .panel{display:flex;gap:16px;margin-top:12px}
+    .left{flex:1}
+    .right{width:320px}
+    .card{background:#fff;border-radius:12px;padding:14px;border:1px solid rgba(0,0,0,.04)}
+    .emoji{font-size:34px}
+    .lead{color:var(--muted);font-size:14px;margin-top:8px}
+    .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .btn{display:inline-block;padding:8px 12px;border-radius:999px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid #f3e8ee;color:var(--accent)}
+    .stat{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+    .bar{height:10px;background:#fff5f7;border-radius:999px;overflow:hidden;border:1px solid rgba(255,107,129,.06)}
+    .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ff3b6f);width:50%}
+    .history{max-height:220px;overflow:auto;padding-right:8px}
+    footer{margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
+    .small{font-size:13px;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .introModal{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,247,250,0.95));display:flex;align-items:center;justify-content:center;padding:20px;border-radius:16px;z-index:60}
+    .introCard{max-width:720px;background:#fff;border-radius:12px;padding:22px;box-shadow:0 12px 40px rgba(17,24,39,.06);text-align:center}
+    @media (max-width:900px){.right{width:100%}.panel{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <header>
+      <div>
+        <h1>SweetChoice — Seanne & Harsh (Live)</h1>
+        <div class="sub">A playful little game for your LDR — celebrating 2+ years, meeting 2–3×/month 💞</div>
+      </div>
+      <div style="text-align:right">
+        <div class="sub">Playtime</div>
+        <div class="small" id="clock">Day 1</div>
+      </div>
+    </header>
+
+    <div class="panel">
+      <div class="left">
+        <div class="card" id="stage">
+          <!-- Stage content -->
+          <div style="text-align:center">
+            <div class="emoji">💖</div>
+            <div style="font-weight:800;margin-top:8px">Welcome</div>
+            <div class="lead">This is a short, replayable life-ish scene builder: make choices, build stats (affection, trust, happiness), and unlock small endings and messages for Seanne.</div>
+            <div style="margin-top:12px">
+              <button class="btn btn-primary" id="startBtn">Start a new scenario</button>
+              <button class="btn btn-ghost" id="resumeBtn">Resume</button>
+            </div>
+            <div style="margin-top:10px" class="small muted">Your progress is saved to your browser (localStorage).</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <div class="card" style="flex:1">
+            <div style="font-weight:700">Events</div>
+            <div class="lead" style="margin-top:8px">Short timeline of what happens — choices affect stats and may trigger special events.</div>
+            <div class="history" id="timeline" style="margin-top:10px"></div>
+          </div>
+
+          <div class="card" style="width:260px">
+            <div style="font-weight:700">Quick actions</div>
+            <div class="lead" style="margin-top:8px">Send an immediate message, generate a sweet note, or fast-forward a day.</div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-primary" id="msgBtn">Send quick message</button>
+              <button class="btn btn-primary" id="noteBtn">Generate a short note</button>
+              <button class="btn btn-ghost" id="nextDayBtn">Fast-forward 1 day</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:700">Stats</div>
+            <div class="small muted">Seanne • Harsh</div>
+          </div>
+
+          <div class="stat"><div>Affection</div><div id="affVal">60</div></div>
+          <div class="bar"><i id="affBar"></i></div>
+
+          <div class="stat"><div>Trust</div><div id="trustVal">50</div></div>
+          <div class="bar"><i id="trustBar"></i></div>
+
+          <div class="stat"><div>Happiness</div><div id="happyVal">55</div></div>
+          <div class="bar"><i id="happyBar"></i></div>
+
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn btn-ghost" id="saveBtn">Save</button>
+            <button class="btn btn-ghost" id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div style="font-weight:700">Recap & endings</div>
+          <div class="lead" style="margin-top:8px">View last scenario recap or generate messages suited to the ending.</div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn btn-primary" id="recapBtn">View recap</button>
+            <button class="btn btn-ghost" id="shareBtn">Get message to send</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>
+      Want this hosted live? Share the link with Seanne and enjoy. (This hosted version is temporary.)
+    </footer>
+
+    <!-- Personalized intro modal -->
+    <div class="introModal" id="introModal">
+      <div class="introCard">
+        <div style="font-size:36px">💌</div>
+        <h2 style="margin:8px 0 6px;font-size:20px">Hi Seanne — from Harsh</h2>
+        <div class="lead">Two years and counting. Even when distance keeps us apart, our little meets (2–3×/month) are everything to me. This is a tiny game I made just for you — pick, play, and get little messages made for our moments.</div>
+        <div style="margin-top:12px;display:flex;gap:10px;justify-content:center">
+          <button class="btn btn-primary" id="beginBtn">Start the game ❤️</button>
+          <button class="btn btn-ghost" id="skipBtn">Skip intro</button>
+        </div>
+        <div class="small muted" style="margin-top:8px">P.S. You can edit any message before sending — keep it yours.</div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* Same engine as before but with modal control */
+const DEFAULT = {
+  day: 1,
+  affection: 60,
+  trust: 50,
+  happiness: 55,
+  timeline: [],
+  nameA: 'Seanne',
+  nameB: 'Harsh'
+};
+
+let state = loadState() || JSON.parse(JSON.stringify(DEFAULT));
+
+const els = {
+  stage: document.getElementById('stage'),
+  timeline: document.getElementById('timeline'),
+  affBar: document.getElementById('affBar'),
+  trustBar: document.getElementById('trustBar'),
+  happyBar: document.getElementById('happyBar'),
+  affVal: document.getElementById('affVal'),
+  trustVal: document.getElementById('trustVal'),
+  happyVal: document.getElementById('happyVal'),
+  clock: document.getElementById('clock'),
+  introModal: document.getElementById('introModal'),
+  beginBtn: document.getElementById('beginBtn'),
+  skipBtn: document.getElementById('skipBtn')
+};
+
+function saveState(){ localStorage.setItem('sweetchoice_v2', JSON.stringify(state)); showToast('Saved ✅'); }
+function loadState(){ try{ const raw = localStorage.getItem('sweetchoice_v2'); if(!raw) return null; return JSON.parse(raw);}catch(e){return null;} }
+function resetState(){ state = JSON.parse(JSON.stringify(DEFAULT)); saveState(); renderStats(); renderTimeline(); renderWelcome(); showToast('Reset to default'); }
+
+function adjust(delta){
+  state.affection = Math.max(0, Math.min(100, state.affection + (delta.aff || 0)));
+  state.trust = Math.max(0, Math.min(100, state.trust + (delta.trust || 0)));
+  state.happiness = Math.max(0, Math.min(100, state.happiness + (delta.happy || 0)));
+  if(delta.note){ state.timeline.unshift({day: state.day, text: delta.note}); }
+  renderStats();
+  renderTimeline();
+}
+
+function renderStats(){
+  els.affBar.style.width = state.affection + '%';
+  els.trustBar.style.width = state.trust + '%';
+  els.happyBar.style.width = state.happiness + '%';
+  els.affVal.textContent = state.affection;
+  els.trustVal.textContent = state.trust;
+  els.happyVal.textContent = state.happiness;
+  els.clock.textContent = 'Day ' + state.day;
+}
+
+function renderTimeline(){
+  if(state.timeline.length === 0){ els.timeline.innerHTML = '<div class=\"small muted\">No events yet — start a scenario.</div>'; return; }
+  els.timeline.innerHTML = state.timeline.slice(0,30).map(ev=>`<div style=\"margin-bottom:8px\"><strong>Day ${ev.day}:</strong> ${escapeHtml(ev.text)}</div>`).join('');
+}
+
+function renderWelcome(){
+  els.stage.innerHTML = `
+    <div style="text-align:center">
+      <div class="emoji">💖</div>
+      <div style="font-weight:800;margin-top:8px">Ready to make a sweet memory for ${state.nameA}?</div>
+      <div class="lead">Play short scenes, pick choices, and shape tiny endings. Each play is quick — replay to explore other branches.</div>
+      <div style="margin-top:12px">
+        <button class="btn btn-primary" onclick="startScenario()">Start scenario</button>
+        <button class="btn btn-ghost" onclick="autoPlaySample()">Auto-play sample</button>
+      </div>
+    </div>
+  `;
+}
+
+function startScenario(){
+  els.stage.innerHTML = `
+    <div class="card">
+      <div class="emoji">📅</div>
+      <div style="font-weight:800;margin-top:8px">Plan your meet with ${state.nameA}</div>
+      <div class="lead" style="margin-top:8px">Choose how you want to spend your next visit (2–3×/month are precious!)</div>
+      <div style="margin-top:10px" class="grid">
+        <div class="card">
+          <div style="font-weight:700">Cozy Date</div>
+          <div class="small muted" style="margin-top:6px">Movie, home-cooking, cuddles (safe, high affection)</div>
+          <div style="margin-top:8px;text-align:right"><button class="btn btn-primary" onclick="sceneCozy()">Pick</button></div>
+        </div>
+        <div class="card">
+          <div style="font-weight:700">Adventure Day</div>
+          <div class="small muted" style="margin-top:6px">Roadtrip or event — exciting but can be stressful</div>
+          <div style="margin-top:8px;text-align:right"><button class="btn btn-primary" onclick="sceneAdventure()">Pick</button></div>
+        </div>
+        <div class="card">
+          <div style="font-weight:700">Deep Talk</div>
+          <div class="small muted" style="margin-top:6px">Meaningful conversation — trust-building</div>
+          <div style="margin-top:8px;text-align:right"><button class="btn btn-primary" onclick="sceneTalk()">Pick</button></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function sceneCozy(){
+  els.stage.innerHTML = `
+    <div class="card">
+      <div class="emoji">🍿</div>
+      <div style="font-weight:800;margin-top:8px">Cozy Date — Movie & Snacks</div>
+      <div class="lead" style="margin-top:6px">Do you plan a surprise playlist of songs or let ${state.nameA} pick the movies?</div>
+      <div style="margin-top:10px;text-align:right">
+        <button class="btn btn-primary" onclick="chooseCozy('surprise')">Surprise playlist</button>
+        <button class="btn btn-ghost" onclick="chooseCozy('letpick')">Let her pick</button>
+      </div>
+    </div>
+  `;
+}
+
+function chooseCozy(type){
+  if(type==='surprise'){
+    adjust({aff:10, happy:6, note:`Planned a surprise playlist for ${state.nameA}.`});
+    state.timeline.unshift({day: state.day, text:'Planned a surprise playlist — she loved it.'});
+  } else {
+    adjust({aff:4, trust:2, note:`Let ${state.nameA} choose the movie.`});
+    state.timeline.unshift({day: state.day, text:`Let ${state.nameA} pick the movie — cozy and easy.`});
+  }
+  state.day++;
+  saveState();
+  renderEnding('cozy');
+}
+
+function sceneAdventure(){
+  els.stage.innerHTML = `
+    <div class="card">
+      <div class="emoji">🚗</div>
+      <div style="font-weight:800;margin-top:8px">Adventure Day — Roadtrip</div>
+      <div class="lead" style="margin-top:6px">Do you drive non-stop for hours to surprise her, or plan rest stops and comfort?</div>
+      <div style="margin-top:10px;text-align:right">
+        <button class="btn btn-primary" onclick="chooseAdventure('dash')">Dash to surprise</button>
+        <button class="btn btn-ghost" onclick="chooseAdventure('plan')">Plan comfort</button>
+      </div>
+    </div>
+  `;
+}
+
+function chooseAdventure(choice){
+  if(choice==='dash'){
+    const rnd = Math.random();
+    if(rnd < 0.6){
+      adjust({aff:12, happy:8, trust:-2, note:'Went on a spontaneous dash — thrilling!'});
+      state.timeline.unshift({day: state.day, text:'Spontaneous roadtrip — thrilling, she loved the surprise.'});
+    } else {
+      adjust({aff:-6, trust:-8, happy:-6, note:'Spontaneous dash caused stress.'});
+      state.timeline.unshift({day: state.day, text:'Roadtrip got stressful — tension on the way.'});
+    }
+  } else {
+    adjust({aff:6, trust:6, happy:4, note:'Planned rest stops and snacks.'});
+    state.timeline.unshift({day: state.day, text:'Thoughtful planning — comfortable day.'});
+  }
+  state.day++;
+  saveState();
+  renderEnding('adventure');
+}
+
+function sceneTalk(){
+  els.stage.innerHTML = `
+    <div class="card">
+      <div class="emoji">🫶</div>
+      <div style="font-weight:800;margin-top:8px">Deep Talk</div>
+      <div class="lead" style="margin-top:6px">Bring up future plans or keep it light and supportive?</div>
+      <div style="margin-top:10px;text-align:right">
+        <button class="btn btn-primary" onclick="chooseTalk('future')">Talk future plans</button>
+        <button class="btn btn-ghost" onclick="chooseTalk('support')">Keep it supportive</button>
+      </div>
+    </div>
+  `;
+}
+
+function chooseTalk(opt){
+  if(opt==='future'){
+    if(state.trust < 40 && Math.random() < 0.5){
+      adjust({aff:-8, trust:-10, happy:-5, note:'Asked about future too soon — tense.'});
+      state.timeline.unshift({day: state.day, text:'Future talk felt pressuring — awkward moment.'});
+    } else {
+      adjust({aff:10, trust:12, happy:6, note:'Shared future hopes — heartwarming talk.'});
+      state.timeline.unshift({day: state.day, text:'Lovely future conversation — felt safe and hopeful.'});
+    }
+  } else {
+    adjust({aff:6, trust:4, happy:6, note:'Supported each other with simple kindness.'});
+    state.timeline.unshift({day: state.day, text:'A gentle supportive talk — cozy trust building.'});
+  }
+  state.day++;
+  saveState();
+  renderEnding('talk');
+}
+
+function renderEnding(type){
+  const s = state;
+  let mood = 'miffed';
+  if(s.affection >= 80 && s.trust >= 70) mood = 'adoring';
+  else if(s.affection >= 60 || s.happiness >= 65) mood = 'happy';
+  else if(s.affection >= 30) mood = 'ok';
+  else mood = 'miffed';
+
+  const emojis = {adoring:'🥰', happy:'😊', ok:'🙂', miffed:'😕'};
+  const titles = {
+    adoring: 'She adores this — magical meet',
+    happy: 'A lovely meet — warm memories',
+    ok: 'It went okay — small things to improve',
+    miffed: 'Tense — maybe try again'
+  };
+
+  const extra = type === 'adventure' ? 'You created a story to tell later.' : type === 'cozy' ? 'Soft and warm vibes.' : 'Words linger — it mattered.';
+
+  els.stage.innerHTML = `
+    <div style="text-align:center">
+      <div class="emoji">${emojis[mood]}</div>
+      <div style="font-weight:800;margin-top:8px">${titles[mood]}</div>
+      <div class="lead" style="margin-top:8px">${extra}</div>
+      <div style="margin-top:10px">Final stats — Affection ${s.affection}, Trust ${s.trust}, Happiness ${s.happiness}</div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-primary" onclick="generateMessages('${mood}')">Get messages to send</button>
+        <button class="btn btn-ghost" onclick="startScenario()">Play again</button>
+      </div>
+    </div>
+  `;
+  saveState();
+}
+
+function generateMessages(mood){
+  const a = state.nameA, b = state.nameB;
+  const pools = {
+    adoring: [
+      `Hey ${a}, just replaying today in my head — you're everything. Can't wait till I see you again. — ${b}`,
+      `Two years and every visit still feels like the first. Miss you already, ${a}. Love, ${b}`
+    ],
+    happy: [
+      `Today was so sweet. Thank you for being you, ${a}. See you soon — ${b}`,
+      `Small moments with you mean the most. Missing you already, ${a}.`
+    ],
+    ok: [
+      `I value our time. Let's plan something even better next visit, ${a}. — ${b}`,
+      `Thanks for today. I might have been awkward, but I really care about you, ${a}.`
+    ],
+    miffed: [
+      `Hey ${a}, I feel bad about how things went. Can we talk and make it right? — ${b}`,
+      `I don't want this to linger. Can we plan a do-over, ${a}?`
+    ]
+  };
+  const chosen = pools[mood] || pools.happy;
+  els.stage.innerHTML = `
+    <div class="card">
+      <div style="font-weight:800">Messages you can copy & send</div>
+      <div class="lead" style="margin-top:8px">Tap to copy. Edit to make them even more personal.</div>
+      <div style="margin-top:10px">${chosen.map(m=>`<div style="margin-bottom:8px;padding:10px;border-radius:8px;background:#fff7fb;border:1px solid rgba(255,107,129,.06);cursor:pointer" onclick="copyText('${escapeJs(m)}')">${escapeHtml(m)}</div>`).join('')}</div>
+      <div style="margin-top:10px;text-align:center"><button class="btn btn-ghost" onclick="renderWelcome()">Back</button></div>
+    </div>
+  `;
+}
+
+function copyText(t){
+  navigator.clipboard?.writeText(t).then(()=>alert('Copied — paste it to ' + state.nameA))
+  .catch(()=>prompt('Copy this', t));
+}
+
+function showToast(msg){
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.position='fixed'; el.style.right='18px'; el.style.bottom='18px';
+  el.style.background='#111'; el.style.color='#fff'; el.style.padding='10px 12px';
+  el.style.borderRadius='10px'; el.style.opacity='0.95'; el.style.fontSize='13px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1600);
+}
+
+// Quick actions wiring
+document.getElementById('startBtn').addEventListener('click', ()=>{ startScenario(); });
+document.getElementById('saveBtn').addEventListener('click', saveState);
+document.getElementById('resetBtn').addEventListener('click', ()=>{ if(confirm('Reset all progress?')) resetState(); });
+document.getElementById('noteBtn').addEventListener('click', ()=>{ quickNote(); });
+document.getElementById('msgBtn').addEventListener('click', ()=>{ quickMsg(); });
+document.getElementById('nextDayBtn').addEventListener('click', ()=>{ state.day++; saveState(); renderStats(); showToast('Advanced a day'); });
+document.getElementById('recapBtn').addEventListener('click', ()=>{ viewRecap(); });
+document.getElementById('shareBtn').addEventListener('click', ()=>{ generateMessages(endingMood()); });
+document.getElementById('resumeBtn').addEventListener('click', ()=>{ renderStats(); renderTimeline(); renderWelcome(); showToast('Resumed'); });
+
+function quickNote(){
+  const t = prompt('Write a 1–2 line sweet note for ' + state.nameA);
+  if(!t) return;
+  adjust({aff:9, happy:6, note:`Sent a quick note: "${t}"`});
+  state.day++;
+  saveState();
+  showToast('Note added');
+}
+
+function quickMsg(){
+  const options = [
+    `Hey ${state.nameA}, thinking of you 💭`,
+    `Missing you — can't wait till the next time I see you.`,
+    `Random thought: you make boring days better.`
+  ];
+  const pick = options[Math.floor(Math.random()*options.length)];
+  adjust({aff:6, happy:4, note:`Sent quick msg: "${pick}"`});
+  state.day++;
+  saveState();
+  alert('Message sent: ' + pick);
+}
+
+function viewRecap(){
+  const recent = state.timeline.slice(0,6);
+  const mood = endingMood();
+  const moodText = mood==='adoring'?'Adoring':mood==='happy'?'Happy':mood==='ok'?'Okay':'Tense';
+  const lines = recent.length ? recent.map(r=>`Day ${r.day}: ${r.text}`).join('\\n') : 'No recent events';
+  alert('Recap (latest events):\\n\\n' + lines + '\\n\\nEnding mood: ' + moodText);
+}
+
+function endingMood(){
+  const s = state;
+  if(s.affection >= 80 && s.trust >= 70) return 'adoring';
+  if(s.affection >= 60 || s.happiness >= 65) return 'happy';
+  if(s.affection >= 30) return 'ok';
+  return 'miffed';
+}
+
+function autoPlaySample(){ startScenario(); setTimeout(()=>chooseCozy('surprise'),300); }
+
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeJs(s){ return String(s).replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
+
+// Intro modal controls
+els.beginBtn.addEventListener('click', ()=>{ els.introModal.style.display='none'; renderStats(); renderTimeline(); renderWelcome(); });
+els.skipBtn.addEventListener('click', ()=>{ els.introModal.style.display='none'; renderStats(); renderTimeline(); renderWelcome(); });
+
+// init
+renderStats();
+renderTimeline();
+// show modal for first-time visitors (keeps showing if localStorage has flag)
+try {
+  const seen = localStorage.getItem('sweet_intro_seen');
+  if(!seen) {
+    els.introModal.style.display = 'flex';
+    localStorage.setItem('sweet_intro_seen', '1');
+  } else {
+    els.introModal.style.display = 'none';
+    renderWelcome();
+  }
+} catch(e){
+  els.introModal.style.display = 'none';
+  renderWelcome();
+}
+</script>
+</body>
+</html>
